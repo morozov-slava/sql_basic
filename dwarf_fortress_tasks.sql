@@ -38,7 +38,7 @@ WHERE
 -- (здесь не очень понятно, если предмет является общим, то мы учитываем его для каждого гнома или нет (решение без учёта общих предметов))
 SELECT
   owner_id,
-  count(item_id) as N_ITEMS
+  count(item_id) as n_items
 FROM
   Items
 WHERE
@@ -51,16 +51,32 @@ GROUP BY
 
 
 -- 6. Получить список профессий с наибольшим количеством незавершённых задач ("pending" и "in_progress") у гномов этих профессий.
+SELECT 
+  ...
+FROM
+  Tasks
 
 
 -- 7. Для каждого типа предметов узнать средний возраст гномов, владеющих этими предметами.
-
+SELECT
+  it.type,
+  AVG(dw.age)
+FROM
+  Items it
+LEFT JOIN
+  Dwarves dw
+ON
+  it.owner_id = dw.dwarf_id
+WHERE
+  it.owner_id IS NOT NULL
+GROUP BY
+  it.type
+  
 -- 8. Найти всех гномов старше среднего возраста (по всем гномам в базе), которые не владеют никакими предметами. 
-
 WITH DwarvesItems AS (
   SELECT
     owner_id,
-    count(item_id) AS N_ITEMS
+    count(item_id) AS n_items
   FROM
     Items
   WHERE
@@ -68,12 +84,25 @@ WITH DwarvesItems AS (
   GROUP BY
     owner_id
 ) 
-  
-SELECT *
+
+SELECT 
+  dw.dwarf_id
 FROM
-   Dwarves
+(
+  SELECT
+     dw.dwarf_id,
+     NVL(di.n_items, 0) as n_items
+  FROM
+     Dwarves dw
+  LEFT JOIN
+     DwarvesItems di
+  ON
+     dw.dwarf_id = di.owner_id
+  WHERE
+     dw.age > (SELECT AVG(age) FROM Dwarves)
+)
 WHERE
-   ...
+   n_items = 0
 
 
 
