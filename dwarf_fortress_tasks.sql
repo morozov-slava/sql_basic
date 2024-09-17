@@ -47,8 +47,26 @@ GROUP BY
   owner_id
 
 -- 5. Получить список всех отрядов и количество гномов в каждом отряде. Также включите в выдачу отряды без гномов.
-
-
+WITH SquadComposition as (
+  SELECT
+     squad_id,
+     count(dwarf_id) as n_dwarves_in_squad
+  FROM 
+    Dwarves dw
+  WHERE
+    squad_id IS NOT NULL
+  GROUP BY
+    squad_id
+)
+SELECT
+  sq.squad_id,
+  NVL(sc.n_dwarves_in_squad, 0) as n_dwarves_in_squad
+FROM
+  Squads sq
+LEFT JOIN
+  SquadComposition sc
+ON
+  sq.squad_id = sc.squad_id
 
 -- 6. Получить список профессий с наибольшим количеством незавершённых задач ("pending" и "in_progress") у гномов этих профессий.
 WITH NotCompletedTasks as (
@@ -63,7 +81,7 @@ WITH NotCompletedTasks as (
 ) 
 SELECT
   dw.profession,
-  count(nct.assigned_to) as N_NOT_COMPLETED_TASKS
+  count(nct.assigned_to) as n_not_completed_tasks
 FROM
   NotCompletedTasks nct
 LEFT JOIN
@@ -78,7 +96,7 @@ ORDER BY
 -- 7. Для каждого типа предметов узнать средний возраст гномов, владеющих этими предметами.
 SELECT
   it.type,
-  AVG(dw.age) as AVG_DWARF_AGE
+  AVG(dw.age) as avg_dwarf_age
 FROM
   Items it
 LEFT JOIN
@@ -102,7 +120,6 @@ WITH DwarvesItems AS (
   GROUP BY
     owner_id
 ) 
-
 SELECT 
   dw.dwarf_id
 FROM
