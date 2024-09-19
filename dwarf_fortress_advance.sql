@@ -68,5 +68,4 @@ FROM
 WHERE
   relationship = 'Родитель'
 
-  
 
